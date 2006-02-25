@@ -1,6 +1,5 @@
 Changes
 MANIFEST
-META.yml # Will be created by "make dist"
 Makefile.PL
 README
 lib/String/Truncate.pm
@@ -8,5 +7,7 @@ t/00-load.t
 t/basic.t
 t/boilerplate.t
 t/ends.t
+t/exports.t
 t/pod-coverage.t
 t/pod.t
+META.yml                                 Module meta-data (added by MakeMaker)

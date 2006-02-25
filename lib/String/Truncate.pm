@@ -3,10 +3,8 @@ package String::Truncate;
 use warnings;
 use strict;
 
-use base qw(Exporter);
-our @EXPORT_OK = qw(elide trunc);
-
 use Carp qw(croak);
+use Sub::Install qw(install_sub);
 
 =head1 NAME
 
@@ -14,11 +12,11 @@ String::Truncate - a module for when strings are too long to be displayed in...
 
 =head1 VERSION
 
-version 0.02
+version 0.03
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 
@@ -41,7 +39,9 @@ It's simple:
  elide($brain, 16, { truncate => 'middle' }); # third option
  elide($brain, 16, { truncate => 'ends' });   # fourth option
 
-=head1 FUNCTIONS
+ String::Trunc::trunc($brain, 16); # => "this is your bra"
+
+=head1 THE BASICS
 
 =head2 C< elide($string, $length, \%arg) >
 
@@ -56,46 +56,78 @@ Valid arguments are:
 
 =cut
 
+my %elider_for = (
+  right  => \&_elide_right,
+  left   => \&_elide_left,
+  middle => \&_elide_middle,
+  ends   => \&_elide_ends,
+);
+
+sub _elide_right {
+  &_assert_1ML;
+  my ($string, $length, $marker) = @_;
+  my $keep = $length - length($marker);
+  return substr($string, 0, $keep) . $marker;
+}
+
+sub _elide_left {
+  &_assert_1ML;
+  my ($string, $length, $marker) = @_;
+  my $keep = $length - length($marker);
+  return $marker . substr($string, -$keep, $keep);
+}
+
+sub _elide_middle {
+  &_assert_1ML;
+  my ($string, $length, $marker) = @_;
+  my $keep = $length - length($marker);
+  my ($keep_left, $keep_right) = (int($keep / 2)) x 2;
+  $keep_left +=1 if ($keep_left + $keep_right) < $keep;
+  return substr($string, 0, $keep_left)
+       . $marker
+       . substr($string, -$keep_right, $keep_right);
+}
+
+sub _elide_ends {
+  &_assert_2ML;
+  my ($string, $length, $marker) = @_;
+  my $keep = $length  -  2 * length($marker);
+  my $midpoint = int(length($string) / 2);
+  my $keep_left = $midpoint - int($keep / 2);
+  return $marker
+       . substr($string, $keep_left, $keep)
+       . $marker;
+}
+
+sub _assert_1ML {
+  my ($string, $length, $marker) = @_;
+  croak "elision marker <$marker> is longer than allowed length $length!"
+    if length($marker) > $length;
+}
+
+sub _assert_2ML {
+  my ($string, $length, $marker) = @_;
+  # this should only complain if needed: elide('foobar', 3, {marker=>'...'})
+  # should be ok -- rjbs, 2006-02-24
+  croak "two elision markers <$marker> are longer than allowed length $length!"
+    if (length($marker) * 2) > $length;
+}
+
 sub elide {
   my ($string, $length, $arg) = @_;
 
   $arg ||= {};
   my $truncate = $arg->{truncate} || 'right';
+
   croak "invalid value for truncate argument: $truncate"
-    unless grep { $_ eq $truncate } qw(left middle right ends);
-
-  my $marker = defined $arg->{marker} ? $arg->{marker} : '...';
-  croak "elision marker <$marker> is longer than allowed length $length!"
-    if length($marker) > $length;
-
-  croak "two elision markers <$marker> are longer than allowed length $length!"
-    if (length($marker) * 2) > $length;
+    unless my $elider = $elider_for{ $truncate };
 
   # hey, this might be really easy:
   return $string if length($string) <= $length;
-  
-  # how much of the string should be left?
-  my $keep = $length - length($marker);
 
-  if ($truncate eq 'right') {
-    return substr($string, 0, $keep) . $marker;
-  } elsif ($truncate eq 'left') {
-    return $marker . substr($string, -$keep, $keep);
-  } elsif ($truncate eq 'middle') {
-    my ($keep_left, $keep_right) = (int($keep / 2)) x 2;
-    $keep_left +=1 if ($keep_left + $keep_right) < $keep;
-    return substr($string, 0, $keep_left)
-         . $marker
-         . substr($string, -$keep_right, $keep_right);
-  } elsif ($truncate eq 'ends') {
-    $keep -= length($marker); # we're going to use two markers
-    my $midpoint = int(length($string) / 2);
-    my $keep_left = $midpoint - int($keep / 2);
-    return $marker
-         . substr($string, $keep_left, $keep)
-         . $marker;
-  }
-  return;
+  my $marker = defined $arg->{marker} ? $arg->{marker} : '...';
+  
+  return $elider->($string, $length, $marker);
 }
   
 =head2 C<< trunc($string, $length, \%arg) >>
@@ -115,10 +147,113 @@ sub trunc {
   return elide($string, $length, $arg);
 }
 
+=head1 IMPORTING
+
+String::Truncate exports both C<elide> and C<trunc>, and also supports the
+Exporter-style ":all" tag.
+
+  use String::Truncate ();        # export nothing
+  use String::Truncate qw(elide); # export just elide()
+  use String::Truncate qw(:all);  # export both elide() and trunc()
+
+When exporting, you may also supply default values:
+
+  use String::Truncate qw(:all) => defaults => { length => 10, marker => '--' };
+
+These values affect only the imported version of the functions.  You may pass
+arguments as usual to override them, and you may call the subroutine by its
+fully-qualified name to get the standard behavior.
+
+=cut
+
+# we export trunc or elide or :all
+# if "defaults" are given, we export subs that merge in options first
+my %_export_ok = map { $_ => 1 } qw(trunc elide);
+
+sub import {
+  my ($class, @args) = @_;
+  my %exports;
+  my $defaults;
+  while (local $_ = shift @args) {
+    if ($_export_ok{$_})  { $exports{$_} = 1; next }
+    if ($_ eq ':all')     { $exports{$_} = 1 for keys %_export_ok; next }
+    if ($_ eq 'defaults') { $defaults = shift @args; next }
+    Carp::croak "$_ not exported by $class";
+  }
+
+  my $into = caller(0);
+  
+  if (not $defaults) {
+    install_sub({ code => $_, into => $into }) for keys %exports;
+  } else {
+    for (keys %exports) {
+      my $code = $class->can("$_\_with_defaults")->($defaults);
+      install_sub({ code => $code, into => $into, as => $_});
+    }
+  }
+}
+
+=head1 BUILDING CODEREFS
+
+The imported builds and installs lexical closures (code references) that merge
+in given values to the defaults.  You can build your own closures without
+importing them into your namespace.  To do this, use the C<elide_with_defaults>
+and C<trunc_with_defaults> routines.
+
+=head2 C< elide_with_defaults >
+
+  my $elider = String::Truncate::elide_with_defaults(\%arg);
+
+This routine, never exported, builds a coderef which behaves like C<elide>, but
+uses default values when needed.  All the valud arguments to C<elide> are valid
+here, as well as C<length>.
+
+=cut
+
+sub _code_with_defaults {
+  my ($code, $skip_defaults) = @_;
+  
+  sub {
+    my ($defaults) = @_;
+    my %defaults = %$defaults;
+    delete $defaults{$_} for @$skip_defaults;
+
+    my $length = delete $defaults{length};
+
+    sub {
+      my $string = $_[0];
+      my $length = defined $_[1] ? $_[1] : $length;
+      my $arg = { %defaults, (defined $_[2] ? %{ $_[2] } : ()) };
+
+      return $code->($string, $length, $arg);
+    }
+  }
+}
+
+install_sub({
+  code => _code_with_defaults(\&elide),
+  as   => 'elide_with_defaults',
+});
+
+=head2 C< trunc_with_defaults >
+
+This routine behaves exactly like elide_with_defaults, with one obvious
+exception: it retuns code that works like C<trunc> rather than C<elide>.  If a
+C<marker> argument is passed, it is ignored.
+
+=cut
+
+install_sub({
+  code => _code_with_defaults(\&trunc, ['marker']),
+  as   => 'trunc_with_defaults',
+});
+
 =head1 SEE ALSO
 
-L<Text::Truncate> does a very similar thing, and lets you set the default
-marker, rather than specify one every time if you don't want "..."
+L<Text::Truncate> does a very similar thing.
+
+So does L<Text::Elide>; it can truncate only between words, but lacks some
+other features.
 
 =head1 AUTHOR
 
@@ -135,11 +270,13 @@ your bug as I make changes.
 =head1 ACKNOWLEDGEMENTS
 
 Ian Langworth gave me some good advice about naming things.  (Also some bad
-jokes.  Nobody wants String::ETOOLONG, Ian.)
+jokes.  Nobody wants String::ETOOLONG, Ian.)  Hans Dieter Pearcey suggested
+allowing defaults just in time for a long bus ride, rescued from bordom by that
+suggestion
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2005 Ricardo Signes, all rights reserved.
+Copyright 2005-2006 Ricardo Signes, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
