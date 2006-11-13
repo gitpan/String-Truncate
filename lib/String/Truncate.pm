@@ -12,13 +12,13 @@ String::Truncate - a module for when strings are too long to be displayed in...
 
 =head1 VERSION
 
-version 0.100
+version 0.101
 
- $Id: /my/cs/projects/trunc/trunk/lib/String/Truncate.pm 22362 2006-06-10T14:51:49.444323Z rjbs  $
+ $Id: /my/cs/projects/trunc/trunk/lib/String/Truncate.pm 27901 2006-11-13T15:34:59.126085Z rjbs  $
 
 =cut
 
-our $VERSION = '0.100';
+our $VERSION = '0.101';
 
 =head1 SYNOPSIS
 
@@ -66,21 +66,21 @@ my %elider_for = (
 );
 
 sub _elide_right {
-  &_assert_1ML;
+  &_assert_1ML; ## no critic Ampersand
   my ($string, $length, $marker) = @_;
   my $keep = $length - length($marker);
   return substr($string, 0, $keep) . $marker;
 }
 
 sub _elide_left {
-  &_assert_1ML;
+  &_assert_1ML; ## no critic Ampersand
   my ($string, $length, $marker) = @_;
   my $keep = $length - length($marker);
   return $marker . substr($string, -$keep, $keep);
 }
 
 sub _elide_middle {
-  &_assert_1ML;
+  &_assert_1ML; ## no critic Ampersand
   my ($string, $length, $marker) = @_;
   my $keep = $length - length($marker);
   my ($keep_left, $keep_right) = (int($keep / 2)) x 2;
@@ -91,7 +91,7 @@ sub _elide_middle {
 }
 
 sub _elide_ends {
-  &_assert_2ML;
+  &_assert_2ML; ## no critic Ampersand
   my ($string, $length, $marker) = @_;
   my $keep = $length  -  2 * length($marker);
   my $midpoint = int(length($string) / 2);
@@ -143,7 +143,7 @@ sub trunc {
   $arg = {} unless $arg;
 
   croak "marker may not be passed to trunc()" if exists $arg->{marker};
-  $arg->{marker} = '';
+  $arg->{marker} = q{};
 
   return elide($string, $length, $arg);
 }
