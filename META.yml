@@ -1,9 +1,9 @@
 --- #YAML:1.0
 name:                String-Truncate
-version:             0.101
+version:             0.102
 abstract:            a module for when strings are too long to be displayed in...
 license:             perl
-generated_by:        ExtUtils::MakeMaker version 6.31
+generated_by:        ExtUtils::MakeMaker version 6.32
 distribution_type:   module
 requires:     
     Sub::Exporter:                 0.953
