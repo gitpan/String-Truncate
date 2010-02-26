@@ -1,15 +1,15 @@
 Changes
+LICENSE
 MANIFEST
+META.json
+META.yml
 Makefile.PL
 README
+dist.ini
 lib/String/Truncate.pm
-t/00-load.t
 t/basic.t
 t/boilerplate.t
 t/ends.t
 t/exports.t
-t/pod-coverage.t
-t/pod.t
-t/perl-critic.t
-LICENSE
-META.yml                                 Module meta-data (added by MakeMaker)
+t/release-pod-coverage.t
+t/release-pod-syntax.t

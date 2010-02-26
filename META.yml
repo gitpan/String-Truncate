@@ -1,16 +1,20 @@
---- #YAML:1.0
-name:                String-Truncate
-version:             0.102
-abstract:            a module for when strings are too long to be displayed in...
-license:             perl
-generated_by:        ExtUtils::MakeMaker version 6.32
-distribution_type:   module
-requires:     
-    Sub::Exporter:                 0.953
-    Sub::Install:                  0.03
-    Test::More:                    0
-meta-spec:
-    url:     http://module-build.sourceforge.net/META-spec-v1.2.html
-    version: 1.2
+---
+abstract: 'a module for when strings are too long to be displayed in...'
 author:
-    - Ricardo Signes <rjbs@cpan.org>
+  - 'Ricardo Signes <rjbs@cpan.org>'
+generated_by: 'Dist::Zilla version 1.100520'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: String-Truncate
+requires:
+  Carp: 0
+  ExtUtils::MakeMaker: 6.11
+  Sub::Exporter: 0.953
+  Sub::Exporter::Util: 0
+  Sub::Install: 0.03
+  Test::More: 0.88
+resources:
+  repository: git://git.codesimply.com/String-Truncate.git
+version: 1.100570

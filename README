@@ -1,24 +1,12 @@
-String-Truncate
-
-This module is useful when you need to turn:
-
-  "my boss is really stupid and just goes on and on"
-
-into 
-
-  "my boss is really ..."
-
-To install this module, run the following commands:
-
-    perl Makefile.PL
-    make
-    make test
-    make install
 
 
-COPYRIGHT AND LICENCE
+This archive contains the distribution String-Truncate, version
+1.100570:
 
-Copyright (C) 2005 Ricardo Signes
+  a module for when strings are too long to be displayed in...
 
-This program is free software; you can redistribute it and/or modify it
-under the same terms as Perl itself.
+This software is copyright (c) 2010 by Ricardo Signes.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+

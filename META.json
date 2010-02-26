@@ -1,0 +1,26 @@
+{
+   "resources" : {
+      "repository" : "git://git.codesimply.com/String-Truncate.git"
+   },
+   "generated_by" : "Dist::Zilla version 1.100520",
+   "meta-spec" : {
+      "version" : 1.4,
+      "url" : "http://module-build.sourceforge.net/META-spec-v1.4.html"
+   },
+   "version" : "1.100570",
+   "name" : "String-Truncate",
+   "author" : [
+      "Ricardo Signes <rjbs@cpan.org>"
+   ],
+   "license" : "perl",
+   "requires" : {
+      "Sub::Exporter::Util" : 0,
+      "Test::More" : "0.88",
+      "Sub::Install" : "0.03",
+      "ExtUtils::MakeMaker" : "6.11",
+      "Sub::Exporter" : "0.953",
+      "Carp" : 0
+   },
+   "abstract" : "a module for when strings are too long to be displayed in..."
+}
+

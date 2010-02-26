@@ -1,19 +1,39 @@
+
 use strict;
 use warnings;
-use ExtUtils::MakeMaker;
 
-WriteMakefile(
-    NAME                => 'String::Truncate',
-    AUTHOR              => 'Ricardo Signes <rjbs@cpan.org>',
-    VERSION_FROM        => 'lib/String/Truncate.pm',
-    ABSTRACT_FROM       => 'lib/String/Truncate.pm',
-    LICENSE             => 'perl',
-    PL_FILES            => {},
-    PREREQ_PM => {
-        'Test::More'    => 0,
-        'Sub::Exporter' => 0.953, # bugs and ::Util
-        'Sub::Install'  => 0.03,
-    },
-    dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
-    clean               => { FILES => 'String-Truncate-*' },
-);
+
+
+use ExtUtils::MakeMaker 6.11;
+
+
+
+my %WriteMakefileArgs = (
+                       'test' => {
+                                   'TESTS' => 't/*.t'
+                                 },
+                       'NAME' => 'String::Truncate',
+                       'DISTNAME' => 'String-Truncate',
+                       'AUTHOR' => 'Ricardo Signes <rjbs@cpan.org>',
+                       'ABSTRACT' => 'a module for when strings are too long to be displayed in...',
+                       'EXE_FILES' => [],
+                       'VERSION' => '1.100570',
+                       'LICENSE' => 'perl',
+                       'PREREQ_PM' => {
+                                        'Test::More' => '0.88',
+                                        'Sub::Exporter::Util' => 0,
+                                        'Sub::Install' => '0.03',
+                                        'ExtUtils::MakeMaker' => '6.11',
+                                        'Sub::Exporter' => '0.953',
+                                        'Carp' => 0
+                                      }
+                     );
+
+
+delete $WriteMakefileArgs{LICENSE}
+  unless eval { ExtUtils::MakeMaker->VERSION(6.31) };
+
+WriteMakefile(%WriteMakefileArgs);
+
+
+

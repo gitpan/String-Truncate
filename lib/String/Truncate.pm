@@ -1,63 +1,12 @@
-package String::Truncate;
-
-use warnings;
 use strict;
+use warnings;
+package String::Truncate;
+our $VERSION = '1.100570';
+# ABSTRACT: a module for when strings are too long to be displayed in...
 
 use Carp qw(croak);
-use Sub::Install qw(install_sub);
+use Sub::Install 0.03 qw(install_sub);
 
-=head1 NAME
-
-String::Truncate - a module for when strings are too long to be displayed in...
-
-=head1 VERSION
-
-version 0.102
-
- $Id: /my/cs/projects/String-Truncate/trunk/lib/String/Truncate.pm 32171 2007-07-23T21:45:08.267438Z rjbs  $
-
-=cut
-
-our $VERSION = '0.102';
-
-=head1 SYNOPSIS
-
-This module handles the simple but common problem of long strings and finite
-terminal width.  It can convert:
-
- "this is your brain" -> "this is your ..."
-                      or "...is your brain"
-                      or "this is... brain"
-                      or "... is your b..."
-
-It's simple:
-
- use String::Truncate qw(elide);
-
- my $brain = "this is your brain";
-
- elide($brain, 16); # first option
- elide($brain, 16, { truncate => 'left' });   # second option
- elide($brain, 16, { truncate => 'middle' }); # third option
- elide($brain, 16, { truncate => 'ends' });   # fourth option
-
- String::Trunc::trunc($brain, 16); # => "this is your bra"
-
-=head1 THE BASICS
-
-=head2 C< elide($string, $length, \%arg) >
-
-This function returns the string, if it is less than or equal to C<$length>
-characters long.  If it is longer, it truncates the string and marks the
-elision.
-
-Valid arguments are:
-
- elide  - elide at left, right, middle, or ends? (default: right)
- marker - how to mark the elision (default: ...)
- at_space - if true, strings will be broken at whitespace if possible
-
-=cut
 
 my %elider_for = (
   right  => \&_elide_right,
@@ -73,7 +22,7 @@ sub _elide_right {
 
   if ($at_space) {
     
-    my ($substr) = $string =~ /\A(.{0,$keep})\s/;
+    my ($substr) = $string =~ /\A(.{0,$keep})\s/s;
     $substr = substr($string, 0, $keep) 
       unless defined $substr and length $substr;
 
@@ -143,12 +92,6 @@ sub elide {
   return $elider->($string, $length, $marker, $at_space);
 }
   
-=head2 C<< trunc($string, $length, \%arg) >>
-
-This acts just like C<elide>, but assumes an empty marker, so it actually
-truncates the string normally.
-
-=cut
 
 sub trunc {
   my ($string, $length, $arg) = @_;
@@ -160,32 +103,9 @@ sub trunc {
   return elide($string, $length, $arg);
 }
 
-=head1 IMPORTING
-
-String::Truncate exports both C<elide> and C<trunc>, and also supports the
-Exporter-style ":all" tag.
-
-  use String::Truncate ();        # export nothing
-  use String::Truncate qw(elide); # export just elide()
-  use String::Truncate qw(:all);  # export both elide() and trunc()
-  use String::Truncate qw(-all);  # export both elide() and trunc()
-
-When exporting, you may also supply default values:
-
-  use String::Truncate -all => defaults => { length => 10, marker => '--' };
-
-  # or
-
-  use String::Truncate -all => { length => 10, marker => '--' };
-
-These values affect only the imported version of the functions.  You may pass
-arguments as usual to override them, and you may call the subroutine by its
-fully-qualified name to get the standard behavior.
-
-=cut
 
 use Sub::Exporter::Util ();
-use Sub::Exporter -setup => {
+use Sub::Exporter 0.953 -setup => {
   exports => {
     Sub::Exporter::Util::merge_col(defaults => {
       trunc => sub { trunc_with_defaults($_[2]) },
@@ -195,22 +115,6 @@ use Sub::Exporter -setup => {
   collectors => [ qw(defaults) ]
 };
 
-=head1 BUILDING CODEREFS
-
-The imported builds and installs lexical closures (code references) that merge
-in given values to the defaults.  You can build your own closures without
-importing them into your namespace.  To do this, use the C<elide_with_defaults>
-and C<trunc_with_defaults> routines.
-
-=head2 C< elide_with_defaults >
-
-  my $elider = String::Truncate::elide_with_defaults(\%arg);
-
-This routine, never exported, builds a coderef which behaves like C<elide>, but
-uses default values when needed.  All the valud arguments to C<elide> are valid
-here, as well as C<length>.
-
-=cut
 
 sub _code_with_defaults {
   my ($code, $skip_defaults) = @_;
@@ -239,13 +143,6 @@ BEGIN {
   });
 }
 
-=head2 C< trunc_with_defaults >
-
-This routine behaves exactly like elide_with_defaults, with one obvious
-exception: it retuns code that works like C<trunc> rather than C<elide>.  If a
-C<marker> argument is passed, it is ignored.
-
-=cut
 
 BEGIN {
   install_sub({
@@ -254,13 +151,112 @@ BEGIN {
   });
 }
 
+
+1; # End of String::Truncate
+
+__END__
+=pod
+
+=head1 NAME
+
+String::Truncate - a module for when strings are too long to be displayed in...
+
+=head1 VERSION
+
+version 1.100570
+
+=head1 SYNOPSIS
+
+This module handles the simple but common problem of long strings and finite
+terminal width.  It can convert:
+
+ "this is your brain" -> "this is your ..."
+                      or "...is your brain"
+                      or "this is... brain"
+                      or "... is your b..."
+
+It's simple:
+
+ use String::Truncate qw(elide);
+
+ my $brain = "this is your brain";
+
+ elide($brain, 16); # first option
+ elide($brain, 16, { truncate => 'left' });   # second option
+ elide($brain, 16, { truncate => 'middle' }); # third option
+ elide($brain, 16, { truncate => 'ends' });   # fourth option
+
+ String::Trunc::trunc($brain, 16); # => "this is your bra"
+
+=head1 FUNCTIONS
+
+=head2 elide
+
+  elide($string, $length, \%arg)
+
+This function returns the string, if it is less than or equal to C<$length>
+characters long.  If it is longer, it truncates the string and marks the
+elision.
+
+Valid arguments are:
+
+ elide  - elide at left, right, middle, or ends? (default: right)
+ marker - how to mark the elision (default: ...)
+ at_space - if true, strings will be broken at whitespace if possible
+
+=head2 trunc
+
+  trunc($string, $length, \%arg)
+
+This acts just like C<elide>, but assumes an empty marker, so it actually
+truncates the string normally.
+
+=head1 IMPORTING
+
+String::Truncate exports both C<elide> and C<trunc>, and also supports the
+Exporter-style ":all" tag.
+
+  use String::Truncate ();        # export nothing
+  use String::Truncate qw(elide); # export just elide()
+  use String::Truncate qw(:all);  # export both elide() and trunc()
+  use String::Truncate qw(-all);  # export both elide() and trunc()
+
+When exporting, you may also supply default values:
+
+  use String::Truncate -all => defaults => { length => 10, marker => '--' };
+
+  # or
+
+  use String::Truncate -all => { length => 10, marker => '--' };
+
+These values affect only the imported version of the functions.  You may pass
+arguments as usual to override them, and you may call the subroutine by its
+fully-qualified name to get the standard behavior.
+
+=head1 BUILDING CODEREFS
+
+The imported builds and installs lexical closures (code references) that merge
+in given values to the defaults.  You can build your own closures without
+importing them into your namespace.  To do this, use the C<elide_with_defaults>
+and C<trunc_with_defaults> routines.
+
+=head2 elide_with_defaults
+
+  my $elider = String::Truncate::elide_with_defaults(\%arg);
+
+This routine, never exported, builds a coderef which behaves like C<elide>, but
+uses default values when needed.  All the valud arguments to C<elide> are valid
+here, as well as C<length>.
+
+=head2 trunc_with_defaults
+
+This routine behaves exactly like elide_with_defaults, with one obvious
+exception: it retuns code that works like C<trunc> rather than C<elide>.  If a
+C<marker> argument is passed, it is ignored.
+
 =head1 SEE ALSO
 
 L<Text::Truncate> does a very similar thing.  So does L<Text::Elide>.
-
-=head1 AUTHOR
-
-Ricardo SIGNES, C<< <rjbs at cpan.org> >>
 
 =head1 BUGS
 
@@ -276,13 +272,16 @@ jokes.  Nobody wants String::ETOOLONG, Ian.)  Hans Dieter Pearcey suggested
 allowing defaults just in time for a long bus ride, and I was rescued from
 boredom by that suggestion
 
-=head1 COPYRIGHT & LICENSE
+=head1 AUTHOR
 
-Copyright 2005-2007 Ricardo SIGNES.
+  Ricardo Signes <rjbs@cpan.org>
 
-This program is free software; you can redistribute it and/or modify it under
-the same terms as Perl itself.
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2010 by Ricardo Signes.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
 
 =cut
 
-1; # End of String::Truncate
