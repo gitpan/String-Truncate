@@ -1,7 +1,9 @@
 use strict;
 use warnings;
 package String::Truncate;
-our $VERSION = '1.100570';
+BEGIN {
+  $String::Truncate::VERSION = '1.100600';
+}
 # ABSTRACT: a module for when strings are too long to be displayed in...
 
 use Carp qw(croak);
@@ -163,7 +165,7 @@ String::Truncate - a module for when strings are too long to be displayed in...
 
 =head1 VERSION
 
-version 1.100570
+version 1.100600
 
 =head1 SYNOPSIS
 
@@ -200,8 +202,8 @@ elision.
 
 Valid arguments are:
 
- elide  - elide at left, right, middle, or ends? (default: right)
- marker - how to mark the elision (default: ...)
+ truncate - elide at left, right, middle, or ends? (default: right)
+ marker   - how to mark the elision (default: ...)
  at_space - if true, strings will be broken at whitespace if possible
 
 =head2 trunc
@@ -274,11 +276,11 @@ boredom by that suggestion
 
 =head1 AUTHOR
 
-  Ricardo Signes <rjbs@cpan.org>
+Ricardo Signes <rjbs@cpan.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2010 by Ricardo Signes.
+This software is copyright (c) 2011 by Ricardo Signes.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.

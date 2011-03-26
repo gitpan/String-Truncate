@@ -11,5 +11,4 @@ t/basic.t
 t/boilerplate.t
 t/ends.t
 t/exports.t
-t/release-pod-coverage.t
 t/release-pod-syntax.t
