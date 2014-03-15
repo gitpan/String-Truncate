@@ -1,14 +1,49 @@
 use strict;
 use warnings;
 package String::Truncate;
-{
-  $String::Truncate::VERSION = '1.100601';
-}
 # ABSTRACT: a module for when strings are too long to be displayed in...
-
+$String::Truncate::VERSION = '1.100602';
 use Carp qw(croak);
 use Sub::Install 0.03 qw(install_sub);
 
+# =head1 SYNOPSIS
+#
+# This module handles the simple but common problem of long strings and finite
+# terminal width.  It can convert:
+#
+#  "this is your brain" -> "this is your ..."
+#                       or "...is your brain"
+#                       or "this is... brain"
+#                       or "... is your b..."
+#
+# It's simple:
+#
+#  use String::Truncate qw(elide);
+#
+#  my $brain = "this is your brain";
+#
+#  elide($brain, 16); # first option
+#  elide($brain, 16, { truncate => 'left' });   # second option
+#  elide($brain, 16, { truncate => 'middle' }); # third option
+#  elide($brain, 16, { truncate => 'ends' });   # fourth option
+#
+#  String::Trunc::trunc($brain, 16); # => "this is your bra"
+#
+# =func elide
+#
+#   elide($string, $length, \%arg)
+#
+# This function returns the string, if it is less than or equal to C<$length>
+# characters long.  If it is longer, it truncates the string and marks the
+# elision.
+#
+# Valid arguments are:
+#
+#  truncate - elide at left, right, middle, or ends? (default: right)
+#  marker   - how to mark the elision (default: ...)
+#  at_space - if true, strings will be broken at whitespace if possible
+#
+# =cut
 
 my %elider_for = (
   right  => \&_elide_right,
@@ -94,6 +129,14 @@ sub elide {
   return $elider->($string, $length, $marker, $at_space);
 }
   
+# =func trunc
+#
+#   trunc($string, $length, \%arg)
+#
+# This acts just like C<elide>, but assumes an empty marker, so it actually
+# truncates the string normally.
+#
+# =cut
 
 sub trunc {
   my ($string, $length, $arg) = @_;
@@ -105,6 +148,29 @@ sub trunc {
   return elide($string, $length, $arg);
 }
 
+# =head1 IMPORTING
+#
+# String::Truncate exports both C<elide> and C<trunc>, and also supports the
+# Exporter-style ":all" tag.
+#
+#   use String::Truncate ();        # export nothing
+#   use String::Truncate qw(elide); # export just elide()
+#   use String::Truncate qw(:all);  # export both elide() and trunc()
+#   use String::Truncate qw(-all);  # export both elide() and trunc()
+#
+# When exporting, you may also supply default values:
+#
+#   use String::Truncate -all => defaults => { length => 10, marker => '--' };
+#
+#   # or
+#
+#   use String::Truncate -all => { length => 10, marker => '--' };
+#
+# These values affect only the imported version of the functions.  You may pass
+# arguments as usual to override them, and you may call the subroutine by its
+# fully-qualified name to get the standard behavior.
+#
+# =cut
 
 use Sub::Exporter::Util ();
 use Sub::Exporter 0.953 -setup => {
@@ -117,6 +183,22 @@ use Sub::Exporter 0.953 -setup => {
   collectors => [ qw(defaults) ]
 };
 
+# =head1 BUILDING CODEREFS
+#
+# The imported builds and installs lexical closures (code references) that merge
+# in given values to the defaults.  You can build your own closures without
+# importing them into your namespace.  To do this, use the C<elide_with_defaults>
+# and C<trunc_with_defaults> routines.
+#
+# =head2 elide_with_defaults
+#
+#   my $elider = String::Truncate::elide_with_defaults(\%arg);
+#
+# This routine, never exported, builds a coderef which behaves like C<elide>, but
+# uses default values when needed.  All the valid arguments to C<elide> are valid
+# here, as well as C<length>.
+#
+# =cut
 
 sub _code_with_defaults {
   my ($code, $skip_defaults) = @_;
@@ -145,6 +227,13 @@ BEGIN {
   });
 }
 
+# =head2 trunc_with_defaults
+#
+# This routine behaves exactly like elide_with_defaults, with one obvious
+# exception: it returns code that works like C<trunc> rather than C<elide>.  If a
+# C<marker> argument is passed, it is ignored.
+#
+# =cut
 
 BEGIN {
   install_sub({
@@ -153,6 +242,25 @@ BEGIN {
   });
 }
 
+# =head1 SEE ALSO
+#
+# L<Text::Truncate> does a very similar thing.  So does L<Text::Elide>.
+#
+# =head1 BUGS
+#
+# Please report any bugs or feature requests through the web interface at
+# L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=String-Truncate>.  I will be
+# notified, and then you'll automatically be notified of progress on your bug as
+# I make changes.
+#
+# =head1 ACKNOWLEDGEMENTS
+#
+# Ian Langworth gave me some good advice about naming things.  (Also some bad
+# jokes.  Nobody wants String::ETOOLONG, Ian.)  Hans Dieter Pearcey suggested
+# allowing defaults just in time for a long bus ride, and I was rescued from
+# boredom by that suggestion
+#
+# =cut
 
 1; # End of String::Truncate
 
@@ -160,13 +268,15 @@ __END__
 
 =pod
 
+=encoding UTF-8
+
 =head1 NAME
 
 String::Truncate - a module for when strings are too long to be displayed in...
 
 =head1 VERSION
 
-version 1.100601
+version 1.100602
 
 =head1 SYNOPSIS
 
@@ -248,13 +358,13 @@ and C<trunc_with_defaults> routines.
   my $elider = String::Truncate::elide_with_defaults(\%arg);
 
 This routine, never exported, builds a coderef which behaves like C<elide>, but
-uses default values when needed.  All the valud arguments to C<elide> are valid
+uses default values when needed.  All the valid arguments to C<elide> are valid
 here, as well as C<length>.
 
 =head2 trunc_with_defaults
 
 This routine behaves exactly like elide_with_defaults, with one obvious
-exception: it retuns code that works like C<trunc> rather than C<elide>.  If a
+exception: it returns code that works like C<trunc> rather than C<elide>.  If a
 C<marker> argument is passed, it is ignored.
 
 =head1 SEE ALSO
@@ -281,7 +391,7 @@ Ricardo Signes <rjbs@cpan.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2013 by Ricardo Signes.
+This software is copyright (c) 2014 by Ricardo Signes.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.

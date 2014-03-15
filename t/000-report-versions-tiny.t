@@ -50,9 +50,6 @@ sub pmver {
 
 eval { $v .= pmver('Carp','any version') };
 eval { $v .= pmver('ExtUtils::MakeMaker','6.30') };
-eval { $v .= pmver('File::Spec','any version') };
-eval { $v .= pmver('IO::Handle','any version') };
-eval { $v .= pmver('IPC::Open3','any version') };
 eval { $v .= pmver('Sub::Exporter','0.953') };
 eval { $v .= pmver('Sub::Exporter::Util','any version') };
 eval { $v .= pmver('Sub::Install','0.03') };
